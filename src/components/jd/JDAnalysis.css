@@ -1,0 +1,101 @@
+/* src/components/jd/JDAnalysisForm.css */
+.jd-analysis-section {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.jd-form-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--space-4);
+}
+
+.analysis-result {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.analysis-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.analysis-subtitle {
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.analysis-text {
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.badge-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.analysis-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--space-6);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--border-color);
+}
+
+.jd-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.jd-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: var(--space-4);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  background-color: var(--bg-secondary);
+  transition: all var(--transition-fast);
+}
+
+.jd-item:hover {
+  border-color: var(--primary-200);
+  background-color: var(--bg-primary);
+}
+
+.jd-item-content {
+  flex: 1;
+  margin-right: var(--space-4);
+}
+
+.jd-item-title {
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 var(--space-1) 0;
+}
+
+.jd-item-summary {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  margin: 0 0 var(--space-2) 0;
+  line-height: 1.5;
+}
+
+.jd-item-keywords {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.jd-item-actions {
+  flex-shrink: 0;
+}
