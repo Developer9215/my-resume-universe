@@ -1,4 +1,4 @@
-﻿// src/App.js
+﻿// src/App.js (BOM 문제 해결)
 import React from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './hooks/useAuth'
