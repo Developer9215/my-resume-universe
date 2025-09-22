@@ -1,11 +1,12 @@
-// src/components/MainDashboard.js
-import React, { useState, useEffect } from 'react'
+// src/components/MainDashboard.js (수정된 버전)
+import React, { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { experiencesAPI, jdAPI } from '../services/api'
 import JDAnalysisForm from './jd/JDAnalysisForm'
 import ExperienceForm from './experiences/ExperienceForm'
 import ExperienceList from './experiences/ExperienceList'
 import ResumeGenerator from './resume/ResumeGenerator'
+import Loading from './common/Loading'
 import './MainDashboard.css'
 
 const MainDashboard = () => {
@@ -19,14 +20,10 @@ const MainDashboard = () => {
   
   const { user, signOut } = useAuth()
 
-  // 데이터 로드
-  useEffect(() => {
-    if (user) {
-      loadData()
-    }
-  }, [user])
-
-  const loadData = async () => {
+  // useCallback으로 loadData 함수 최적화
+  const loadData = useCallback(async () => {
+    if (!user) return
+    
     setLoading(true)
     try {
       const [experiencesResult, jdsResult] = await Promise.all([
@@ -41,7 +38,12 @@ const MainDashboard = () => {
     } finally {
       setLoading(false)
     }
-  }
+  }, [user])
+
+  // 데이터 로드
+  useEffect(() => {
+    loadData()
+  }, [loadData])
 
   const handleJDAnalysisComplete = (newJD) => {
     setJDs(prev => [newJD, ...prev])
