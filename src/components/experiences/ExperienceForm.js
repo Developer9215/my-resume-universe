@@ -1,8 +1,7 @@
-// src/components/experiences/ExperienceForm.js
+// src/components/experiences/ExperienceForm.js (수정된 버전)
 import React, { useState, useEffect } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import { experiencesAPI } from '../../services/api'
-import { EXPERIENCE_TYPES } from '../../utils/constants'
 import { parseSkills } from '../../utils/helpers'
 import ErrorMessage from '../common/ErrorMessage'
 import './ExperienceForm.css'
@@ -20,6 +19,14 @@ const ExperienceForm = ({ onSave, editingExperience, onCancel }) => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const { user } = useAuth()
+
+  // 경험 유형 옵션
+  const experienceTypes = [
+    { value: 'work_experience', label: '💼 경력', icon: '💼' },
+    { value: 'project', label: '🚀 프로젝트', icon: '🚀' },
+    { value: 'education', label: '🎓 교육', icon: '🎓' },
+    { value: 'certificate', label: '📜 자격증', icon: '📜' }
+  ]
 
   useEffect(() => {
     if (editingExperience) {
@@ -82,6 +89,26 @@ const ExperienceForm = ({ onSave, editingExperience, onCancel }) => {
         </div>
         <div className="card-body">
           <form onSubmit={handleSubmit} className="experience-form">
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="type" className="form-label">유형</label>
+                <select
+                  id="type"
+                  name="type"
+                  value={formData.type}
+                  onChange={handleInputChange}
+                  className="form-select"
+                  required
+                >
+                  {experienceTypes.map((type) => (
+                    <option key={type.value} value={type.value}>
+                      {type.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
             <div className="form-row">
               <div className="form-group">
                 <label htmlFor="title" className="form-label">제목/직책</label>
