@@ -1,11 +1,17 @@
-// src/services/ai.js (이미지 분석 + URL 크롤링 추가)
+// src/services/ai.js
 import axios from 'axios'
 
 // OpenAI API 설정
 const AI_API_KEY = process.env.REACT_APP_OPENAI_API_KEY
 const AI_API_URL = 'https://api.openai.com/v1/chat/completions'
+const AI_MODEL_TEXT = 'gpt-3.5-turbo'
+const AI_MODEL_VISION = 'gpt-4o'
 
-const aiRequest = async (messages, temperature = 0.3, model = 'gpt-3.5-turbo') => {
+const aiRequest = async (messages, temperature = 0.3, model = AI_MODEL_TEXT) => {
+  if (!AI_API_KEY) {
+    throw new Error('AI API 키가 설정되지 않았습니다. .env.local 파일을 확인해주세요.')
+  }
+
   try {
     const response = await axios.post(
       AI_API_URL,
@@ -25,28 +31,28 @@ const aiRequest = async (messages, temperature = 0.3, model = 'gpt-3.5-turbo') =
     
     return response.data.choices[0].message.content
   } catch (error) {
-    console.error('AI API 호출 오류:', error)
-    throw new Error('AI 분석에 실패했습니다.')
+    console.error('AI API 호출 오류:', error.message)
+    throw new Error('AI 분석에 실패했습니다. API 키나 네트워크 상태를 확인해주세요.')
   }
 }
 
-// 기존 텍스트 JD 분석 함수
-export const analyzeJD = async (jdText) => {
+// 텍스트 JD 분석 함수
+const analyzeJDContent = async (content) => {
   const messages = [
     {
       role: 'system',
       content: `당신은 채용공고 분석 전문가입니다. 주어진 채용공고를 분석하여 다음 정보를 JSON 형태로 반환해주세요:
       {
         "keywords": ["키워드1", "키워드2", ...],
-        "summary": "채용공고 요약 (3-4줄)",
-        "required_skills": ["필수 스킬1", "필수 스킬2", ...],
-        "preferred_skills": ["우대 스킬1", "우대 스킬2", ...],
-        "key_responsibilities": ["주요 업무1", "주요 업무2", ...]
+        "requirements": "자격 요건 요약",
+        "preferences": "우대 사항 요약",
+        "key_responsibilities": "주요 업무 요약",
+        "summary": "채용공고 전체 요약 (3-4줄)"
       }`
     },
     {
       role: 'user',
-      content: `다음 채용공고를 분석해주세요:\n\n${jdText}`
+      content: `다음 채용공고를 분석해주세요:\n\n${content}`
     }
   ]
 
@@ -55,14 +61,19 @@ export const analyzeJD = async (jdText) => {
   try {
     return JSON.parse(result)
   } catch (e) {
+    console.error('JSON 파싱 오류:', e)
     return {
       keywords: [],
-      summary: '분석 중 오류가 발생했습니다.',
-      required_skills: [],
-      preferred_skills: [],
-      key_responsibilities: []
+      requirements: '분석 중 오류가 발생했습니다.',
+      preferences: '분석 중 오류가 발생했습니다.',
+      key_responsibilities: '분석 중 오류가 발생했습니다.',
+      summary: '분석 중 오류가 발생했습니다.'
     }
   }
+}
+
+export const analyzeJD = async (jdText) => {
+  return analyzeJDContent(jdText)
 }
 
 // 이미지에서 JD 추출 및 분석
@@ -74,18 +85,13 @@ export const analyzeImageJD = async (base64Images) => {
   }
 
   try {
-    // 1단계: 이미지에서 텍스트 추출
-    const extractMessages = [
-      {
-        role: 'system',
-        content: '당신은 이미지에서 텍스트를 정확하게 추출하는 전문가입니다. 이미지에 있는 모든 텍스트를 그대로 읽어서 반환해주세요. 여러 이미지가 있다면 모든 내용을 통합하여 반환하세요.'
-      },
+    const messages = [
       {
         role: 'user',
         content: [
           { 
             type: 'text', 
-            text: '이 채용공고 이미지에서 모든 텍스트를 추출해주세요:' 
+            text: '이 채용공고 이미지에서 모든 텍스트를 추출하고, 그 내용을 바탕으로 채용공고를 분석하여 JSON 형태로 반환해주세요. 여러 이미지가 있다면 모든 내용을 통합하여 분석하세요.' 
           },
           ...base64Images.map(base64 => ({
             type: 'image_url',
@@ -98,21 +104,14 @@ export const analyzeImageJD = async (base64Images) => {
       }
     ]
 
-    console.log('이미지에서 텍스트 추출 중...')
-    const extractedText = await aiRequest(extractMessages, 0.3, 'gpt-4o')
+    console.log('이미지 분석 중...')
+    const result = await aiRequest(messages, 0.3, AI_MODEL_VISION)
     
-    if (!extractedText || extractedText.length < 50) {
-      throw new Error('이미지에서 충분한 텍스트를 추출할 수 없습니다. 더 선명한 이미지를 사용해주세요.')
-    }
-
-    console.log('추출된 텍스트 길이:', extractedText.length)
-
-    // 2단계: 추출된 텍스트를 JD 분석
-    const analysis = await analyzeJD(extractedText)
-
-    return {
-      extractedText,
-      analysis
+    try {
+      return JSON.parse(result)
+    } catch (e) {
+      console.error('JSON 파싱 오류:', e)
+      throw new Error('이미지 분석 결과를 파싱할 수 없습니다. AI 응답을 확인해주세요.')
     }
   } catch (error) {
     console.error('이미지 분석 오류:', error)
@@ -122,119 +121,27 @@ export const analyzeImageJD = async (base64Images) => {
 
 // URL에서 JD 크롤링 및 분석
 export const analyzeURLJD = async (url) => {
-  console.log('URL JD 분석 시작:', url)
+  console.log('백엔드 서버를 통한 URL JD 분석 시작:', url);
   
   try {
-    // URL 유효성 검사
-    new URL(url)
+    const response = await axios.post('http://localhost:5000/api/crawl-and-analyze', { url });
     
-    // CORS 우회를 위한 프록시 서비스 사용
-    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`
+    // 백엔드가 반환한 'analysis' 데이터를 직접 사용합니다.
+    const analysisResult = response.data.analysis; 
     
-    console.log('웹페이지 크롤링 중...')
-    const response = await axios.get(proxyUrl, {
-      timeout: 15000,
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-      }
-    })
-    
-    if (!response.data) {
-      throw new Error('웹페이지 내용을 가져올 수 없습니다.')
+    if (!analysisResult) {
+      throw new Error('백엔드로부터 분석 결과를 가져오지 못했습니다.');
     }
     
-    // HTML에서 텍스트 추출
-    const htmlContent = response.data
-    let extractedText = ''
+    console.log('URL 분석이 성공적으로 완료되었습니다.');
     
-    try {
-      // DOMParser를 사용해서 HTML 파싱
-      const parser = new DOMParser()
-      const doc = parser.parseFromString(htmlContent, 'text/html')
-      
-      // 채용공고 사이트별 선택자
-      const selectors = [
-        // 잡코리아
-        '.recruit-info', '.job-detail', '.content-wrap',
-        // 사람인
-        '.job-detail', '.recruit-wrap', '.job-summary',
-        // 원티드
-        '.job-detail', '.job-description',
-        // 고용24/워크넷
-        '.recruit-info', '.info-wrap', '.job-info',
-        // 기본 선택자
-        '.content', '.description', 'main', '.container'
-      ]
-      
-      // 선택자들을 시도해서 가장 긴 텍스트를 찾기
-      let bestText = ''
-      for (const selector of selectors) {
-        try {
-          const elements = doc.querySelectorAll(selector)
-          if (elements.length > 0) {
-            const text = Array.from(elements)
-              .map(el => el.textContent || el.innerText)
-              .join('\n\n')
-              .trim()
-            
-            if (text.length > bestText.length) {
-              bestText = text
-            }
-          }
-        } catch (e) {
-          continue
-        }
-      }
-      
-      // 선택자로 찾지 못한 경우 body 전체에서 추출
-      if (!bestText || bestText.length < 200) {
-        const bodyText = doc.body ? doc.body.textContent || doc.body.innerText : ''
-        bestText = bodyText
-      }
-      
-      extractedText = bestText
-        .replace(/\s+/g, ' ')           // 연속된 공백 제거
-        .replace(/\n+/g, '\n')          // 연속된 줄바꿈 제거
-        .trim()
-        
-    } catch (parseError) {
-      console.warn('HTML 파싱 실패, 정규식으로 시도:', parseError)
-      
-      // HTML 파싱 실패시 정규식으로 태그 제거
-      extractedText = htmlContent
-        .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '') // 스크립트 제거
-        .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')   // 스타일 제거
-        .replace(/<[^>]+>/g, ' ')                         // HTML 태그 제거
-        .replace(/\s+/g, ' ')                             // 연속된 공백 제거
-        .trim()
-    }
-    
-    if (!extractedText || extractedText.length < 100) {
-      throw new Error('웹페이지에서 충분한 채용공고 정보를 찾을 수 없습니다.')
-    }
-    
-    console.log('추출된 텍스트 길이:', extractedText.length)
-    
-    // 추출된 텍스트를 JD 분석
-    const analysis = await analyzeJD(extractedText)
-    
-    return {
-      extractedText,
-      analysis
-    }
-    
+    // 이제 analysisResult를 바로 반환하여 다음 단계로 진행합니다.
+    return analysisResult;
   } catch (error) {
-    console.error('URL 분석 오류:', error)
-    
-    if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
-      throw new Error('웹페이지에 접근할 수 없습니다. URL을 확인해주세요.')
-    } else if (error.code === 'ECONNABORTED') {
-      throw new Error('요청 시간이 초과되었습니다. 다시 시도해주세요.')
-    } else {
-      throw new Error(`URL 분석 중 오류가 발생했습니다: ${error.message}`)
-    }
+    console.error('URL 분석 오류:', error.response?.data?.error || error.message);
+    throw new Error(error.response?.data?.error || `URL 분석 중 오류가 발생했습니다: ${error.message}`);
   }
-}
+};
 
 // 기존 함수들 유지
 export const generateResume = async (jdAnalysis, userExperiences) => {
