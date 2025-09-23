@@ -39,6 +39,10 @@ const AccountSettings = ({ onBackToMain }) => {
   // 프로필 업데이트
   const handleProfileUpdate = async (e) => {
     e.preventDefault()
+
+    // 여기 한 줄만 추가해주세요!
+    console.log('업데이트를 시작합니다. 새 이름:', profileData.name)
+    
     setLoading(true)
     setError('')
     setSuccess('')
@@ -59,6 +63,9 @@ const AccountSettings = ({ onBackToMain }) => {
 
       if (dbError) throw dbError
 
+      // 여기 한 줄을 추가해주세요.
+      await supabase.auth.refreshSession();
+      
       setSuccess('프로필이 성공적으로 업데이트되었습니다.')
     } catch (error) {
       setError('프로필 업데이트 중 오류가 발생했습니다: ' + error.message)
@@ -195,6 +202,8 @@ const AccountSettings = ({ onBackToMain }) => {
     }
   }
 
+  // return 위에 추가하세요.
+  console.log('현재 화면에 표시될 이름:', user?.user_metadata?.name)
   return (
     <div className="dashboard">
       {/* 헤더 유지 */}
@@ -212,7 +221,7 @@ const AccountSettings = ({ onBackToMain }) => {
               <h1 className="dashboard-title">⚙️ 계정 설정</h1>
             </div>
             <div className="header-actions">
-              <span className="user-info">안녕하세요, {user?.email}님!</span>
+              <span className="user-info">안녕하세요, {user?.user_metadata?.name}님!</span>
               <button onClick={signOut} className="btn btn-ghost btn-sm">
                 로그아웃
               </button>

@@ -47,6 +47,7 @@ const JDAnalysisForm = ({ onAnalysisComplete, existingJDs, onSelectJD }) => {
   }
 
   // 2. JD 삭제 함수 (자식은 부모 함수 호출만 함)
+  console.log('버튼이 클릭되었습니다.')
   const handleDelete = async (jdId) => {
     const { error } = await jdAPI.delete(jdId);
 
