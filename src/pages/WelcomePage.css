@@ -1,0 +1,448 @@
+/* src/pages/WelcomePage.css */
+
+.welcome-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  overflow: hidden;
+  position: relative;
+}
+
+.welcome-content {
+  max-width: 900px;
+  width: 100%;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.8s ease-out;
+}
+
+.welcome-content.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* 환영 헤더 */
+.welcome-header {
+  margin-bottom: 4rem;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.8s ease-out;
+}
+
+.welcome-header.animate {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.welcome-icon {
+  position: relative;
+  margin-bottom: 2rem;
+  display: inline-block;
+}
+
+.success-burst {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.burst-1, .burst-2, .burst-3 {
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  animation: burst 2s ease-out infinite;
+}
+
+.burst-1 {
+  background: rgba(255, 255, 255, 0.3);
+  animation-delay: 0s;
+}
+
+.burst-2 {
+  background: rgba(255, 255, 255, 0.2);
+  animation-delay: 0.3s;
+  transform: translate(-50%, -50%) scale(1.2);
+}
+
+.burst-3 {
+  background: rgba(255, 255, 255, 0.1);
+  animation-delay: 0.6s;
+  transform: translate(-50%, -50%) scale(1.4);
+}
+
+.welcome-emoji {
+  font-size: 5rem;
+  display: block;
+  position: relative;
+  z-index: 2;
+  animation: bounce 2s ease-in-out infinite;
+}
+
+.welcome-title {
+  font-size: 3.5rem;
+  font-weight: 800;
+  color: white;
+  margin-bottom: 1.5rem;
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+}
+
+.welcome-subtitle {
+  font-size: 1.4rem;
+  color: rgba(255, 255, 255, 0.95);
+  line-height: 1.6;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* 서비스 소개 */
+.service-intro {
+  margin-bottom: 4rem;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.8s ease-out 0.3s;
+}
+
+.service-intro.animate {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.intro-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 1.5rem;
+  text-shadow: 0 1px 15px rgba(0, 0, 0, 0.2);
+}
+
+.intro-description {
+  font-size: 1.2rem;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.7;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* 기능 소개 */
+.features-section {
+  margin-bottom: 4rem;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.8s ease-out 0.6s;
+}
+
+.features-section.animate {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.features-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: white;
+  margin-bottom: 2.5rem;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.2);
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.feature-card {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 1rem;
+  padding: 2rem 1.5rem;
+  transition: all 0.3s ease;
+  opacity: 0;
+  transform: translateY(20px);
+  animation: slideInUp 0.6s ease-out forwards;
+}
+
+.feature-card:hover {
+  transform: translateY(-5px);
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.feature-icon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  display: block;
+}
+
+.feature-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: white;
+  margin-bottom: 0.75rem;
+  text-shadow: 0 1px 5px rgba(0, 0, 0, 0.2);
+}
+
+.feature-description {
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.5;
+  text-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* 시작하기 섹션 */
+.start-section {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.8s ease-out 0.9s;
+}
+
+.start-section.animate {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.start-message {
+  margin-bottom: 2rem;
+}
+
+.start-message p {
+  font-size: 1.3rem;
+  color: white;
+  font-weight: 600;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.2);
+}
+
+.start-button {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+  color: white;
+  border: none;
+  border-radius: 50px;
+  padding: 1.2rem 3rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  box-shadow: 0 8px 25px rgba(238, 90, 36, 0.4);
+  text-decoration: none;
+  margin-bottom: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.start-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.6s ease;
+}
+
+.start-button:hover::before {
+  left: 100%;
+}
+
+.start-button:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 12px 35px rgba(238, 90, 36, 0.5);
+}
+
+.start-button:active {
+  transform: translateY(-1px) scale(1.02);
+}
+
+.start-button-icon, .start-button-arrow {
+  font-size: 1.3rem;
+  transition: transform 0.3s ease;
+}
+
+.start-button:hover .start-button-arrow {
+  transform: translateX(5px);
+}
+
+.additional-info {
+  opacity: 0.8;
+}
+
+.additional-info p {
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.6;
+  text-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+}
+
+.email-link {
+  color: rgba(255, 255, 255, 0.95);
+  font-weight: 600;
+}
+
+/* 장식 요소 */
+.decoration-elements {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.floating-element {
+  position: absolute;
+  font-size: 2rem;
+  opacity: 0.6;
+  animation: float 6s ease-in-out infinite;
+}
+
+.element-1 {
+  top: 10%;
+  left: 10%;
+  animation-delay: 0s;
+}
+
+.element-2 {
+  top: 20%;
+  right: 15%;
+  animation-delay: 1s;
+}
+
+.element-3 {
+  top: 60%;
+  left: 5%;
+  animation-delay: 2s;
+}
+
+.element-4 {
+  bottom: 20%;
+  right: 10%;
+  animation-delay: 3s;
+}
+
+.element-5 {
+  bottom: 10%;
+  left: 20%;
+  animation-delay: 4s;
+}
+
+.element-6 {
+  top: 40%;
+  right: 5%;
+  animation-delay: 5s;
+}
+
+/* 애니메이션 */
+@keyframes burst {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0;
+  }
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-10px);
+  }
+  60% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-10px) rotate(5deg);
+  }
+  50% {
+    transform: translateY(-20px) rotate(0deg);
+  }
+  75% {
+    transform: translateY(-10px) rotate(-5deg);
+  }
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+  .welcome-container {
+    padding: 1rem;
+  }
+  
+  .welcome-title {
+    font-size: 2.5rem;
+  }
+  
+  .welcome-subtitle {
+    font-size: 1.2rem;
+  }
+  
+  .intro-title {
+    font-size: 1.7rem;
+  }
+  
+  .intro-description {
+    font-size: 1.1rem;
+  }
+  
+  .features-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .feature-card {
+    padding: 1.5rem 1rem;
+  }
+  
+  .start-button {
+    padding: 1rem 2.5rem;
+    font-size: 1.1rem;
+  }
+  
+  .floating-element {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .welcome-title {
+    font-size: 2rem;
+  }
+  
+  .welcome-emoji {
+    font-size: 4rem;
+  }
+  
+  .start-button {
+    padding: 0.9rem 2rem;
+    font-size: 1rem;
+  }
+}
