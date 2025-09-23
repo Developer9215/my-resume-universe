@@ -29,7 +29,7 @@ const MainDashboard = () => {
     try {
       const [experiencesResult, jdsResult] = await Promise.all([
         experiencesAPI.getAll(user.id),
-        jdAPI.getAll(user.id)
+        jdAPI.legacy.getAll(user.id)  // 기존 호환성 방식 사용
       ])
       
       setExperiences(experiencesResult.data || [])
