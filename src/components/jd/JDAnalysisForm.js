@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { analyzeJD, analyzeURLJD, analyzeImageJD } from '../../services/ai';
-import { supabase } from '../../services/supabase'; // <-- 이 경로가 수정되었습니다.
+import { jdAPI } from '../../services/api';
+import { preprocessImages, normalizeErrorMessage } from '../../services/ai';
+import { supabase } from '../../services/supabase';
 import './JDAnalysisForm.css';
 
 const JDAnalysisForm = () => {
@@ -76,7 +77,7 @@ const JDAnalysisForm = () => {
     setAnalysisResult(null); // 모드 변경 시 결과 초기화
   };
 
-  // 분석 실행 함수
+  // 분석 실행 함수 - 새로운 API 구조 사용
   const handleAnalysis = async () => {
     setAnalysisResult(null);
     setIsLoading(true);
@@ -86,13 +87,14 @@ const JDAnalysisForm = () => {
       let result;
       switch (inputMode) {
         case 'text':
-          result = await analyzeJD(inputValue);
+          result = await jdAPI.analyze.text(inputValue);
           break;
         case 'url':
-          result = await analyzeURLJD(urlValue);
+          result = await jdAPI.analyze.url(urlValue);
           break;
         case 'image':
-          result = await analyzeImageJD(images);
+          const processedImages = await preprocessImages(images);
+          result = await jdAPI.analyze.image(processedImages);
           break;
         default:
           throw new Error('Invalid input mode');
@@ -101,7 +103,8 @@ const JDAnalysisForm = () => {
       setAnalysisResult(result);
     } catch (error) {
       console.error('Analysis failed:', error);
-      setAnalysisResult({ error: '분석 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' });
+      const errorMessage = normalizeErrorMessage(error);
+      setAnalysisResult({ error: errorMessage });
     } finally {
       setIsLoading(false);
       setIsAnalyzing(false);
@@ -283,6 +286,25 @@ const JDAnalysisForm = () => {
                   {analysisResult.preferences}
                 </p>
               </div>
+              {/* 추가된 분석 결과 섹션들 */}
+              {analysisResult.company_name && (
+                <div className="analysis-section">
+                  <h3 className="analysis-subtitle">회사명</h3>
+                  <p className="analysis-text">{analysisResult.company_name}</p>
+                </div>
+              )}
+              {analysisResult.position && (
+                <div className="analysis-section">
+                  <h3 className="analysis-subtitle">포지션</h3>
+                  <p className="analysis-text">{analysisResult.position}</p>
+                </div>
+              )}
+              {analysisResult.summary && (
+                <div className="analysis-section">
+                  <h3 className="analysis-subtitle">전체 요약</h3>
+                  <p className="analysis-text">{analysisResult.summary}</p>
+                </div>
+              )}
             </>
           )}
         </div>

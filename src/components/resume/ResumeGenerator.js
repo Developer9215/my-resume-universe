@@ -2,7 +2,7 @@
 import React, { useState } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import { resumeAPI } from '../../services/api'
-import { generateResume, generateInterviewQuestions, generatePersonalStatement } from '../../services/ai'
+import { normalizeErrorMessage } from '../../services/ai'
 import ErrorMessage from '../common/ErrorMessage'
 import './ResumeGenerator.css'
 
@@ -31,14 +31,19 @@ const ResumeGenerator = ({ selectedJD, experiences, jds, onSelectJD }) => {
         summary: selectedJD.summary || '',
         required_skills: [],
         preferred_skills: [],
-        key_responsibilities: []
+        key_responsibilities: [],
+        requirements: selectedJD.requirements || '',
+        preferences: selectedJD.preferences || ''
       }
 
-      // 병렬로 모든 콘텐츠 생성
+      console.log('JD 분석 데이터:', jdAnalysis);
+      console.log('사용자 경험:', experiences);
+
+      // 병렬로 모든 콘텐츠 생성 - 새로운 API 사용
       const [resume, questions, statement] = await Promise.all([
-        generateResume(jdAnalysis, experiences),
-        generateInterviewQuestions(jdAnalysis, '생성된 이력서'),
-        generatePersonalStatement(jdAnalysis, experiences)
+        resumeAPI.generate(jdAnalysis, experiences),
+        resumeAPI.generateQuestions(jdAnalysis, '생성된 이력서'),
+        resumeAPI.generateStatement(jdAnalysis, experiences)
       ])
 
       setGeneratedContent({
@@ -49,7 +54,9 @@ const ResumeGenerator = ({ selectedJD, experiences, jds, onSelectJD }) => {
       
       setActiveContent('resume')
     } catch (error) {
-      setError('콘텐츠 생성 중 오류가 발생했습니다: ' + error.message)
+      console.error('Content generation error:', error);
+      const errorMessage = normalizeErrorMessage(error);
+      setError('콘텐츠 생성 중 오류가 발생했습니다: ' + errorMessage);
     } finally {
       setIsGenerating(false)
     }
@@ -59,13 +66,14 @@ const ResumeGenerator = ({ selectedJD, experiences, jds, onSelectJD }) => {
     if (!generatedContent.resume) return
 
     try {
-      await resumeAPI.create({
+      await resumeAPI.legacy.create({
         user_id: user.id,
         jd_id: selectedJD.id,
         content: generatedContent.resume
       })
       alert('이력서가 저장되었습니다!')
     } catch (error) {
+      console.error('Resume save error:', error);
       alert('저장 중 오류가 발생했습니다.')
     }
   }
@@ -100,7 +108,9 @@ const ResumeGenerator = ({ selectedJD, experiences, jds, onSelectJD }) => {
                       summary: jd.summary || '',
                       required_skills: [],
                       preferred_skills: [],
-                      key_responsibilities: []
+                      key_responsibilities: [],
+                      requirements: jd.requirements || '',
+                      preferences: jd.preferences || ''
                     }
                   })}
                 >
