@@ -1,4 +1,27 @@
-/* src/components/jd/JDAnalysisForm.css (추가/수정된 스타일) */
+/* src/components/jd/JDAnalysisForm.css (기존 + 추가/수정된 스타일 통합) */
+
+/* 카드 및 섹션 기본 스타일 */
+.jd-analysis-section .card {
+  padding: var(--space-6);
+  box-shadow: var(--shadow-lg);
+}
+
+.jd-analysis-section .card-header {
+  margin-bottom: var(--space-6);
+}
+
+.jd-analysis-section .card-title {
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.jd-analysis-section .card-subtitle {
+  font-size: var(--text-base);
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-top: var(--space-2);
+}
 
 /* 텍스트 에어리어 헤더 */
 .textarea-header {
@@ -27,6 +50,11 @@
   color: var(--success-600);
   font-weight: 500;
   animation: fadeInOut 0.3s ease-in-out;
+  padding: var(--space-1) var(--space-2);
+  background-color: var(--success-50);
+  border: 1px solid var(--success-200);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
 }
 
 @keyframes fadeInOut {
@@ -34,22 +62,32 @@
   100% { opacity: 1; transform: translateY(0); }
 }
 
-/* 텍스트 에어리어 개선 */
-.jd-textarea {
+/* 텍스트 에어리어 및 입력 필드 */
+.jd-textarea, .form-input {
+  width: 100%;
   font-family: inherit;
   line-height: 1.6;
   resize: vertical;
   min-height: 200px;
   border: 2px solid var(--border-color);
   transition: all var(--transition-fast);
+  padding: var(--space-3); /* form-input에도 padding 추가 */
+  background-color: var(--bg-primary); /* 색상 통일 */
+  color: var(--text-primary); /* 색상 통일 */
+  border-radius: var(--radius-md); /* form-input에도 radius 추가 */
 }
 
-.jd-textarea:focus {
+.form-input {
+    min-height: auto; /* input 태그는 textarea와 다르게 min-height 설정 */
+}
+
+.jd-textarea:focus, .form-input:focus {
   border-color: var(--primary-500);
   box-shadow: 0 0 0 3px var(--primary-50);
+  outline: none;
 }
 
-.jd-textarea:disabled {
+.jd-textarea:disabled, .form-input:disabled {
   opacity: 0.7;
   cursor: not-allowed;
 }
@@ -60,6 +98,103 @@
   justify-content: flex-end;
   margin-top: var(--space-2);
 }
+
+/* 입력 모드 탭 */
+.input-mode-tabs {
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-6);
+  border-bottom: 2px solid var(--border-color);
+}
+
+.tab-btn {
+  background-color: transparent;
+  border: none;
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-base);
+  font-weight: 500;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all var(--transition-fast);
+  transform: translateY(2px); /* border-bottom 두께만큼 이동 */
+}
+
+.tab-btn.active {
+  color: var(--primary-600);
+  border-bottom-color: var(--primary-500);
+  font-weight: 600;
+  transform: translateY(2px);
+}
+
+.tab-btn:hover {
+  color: var(--text-primary);
+}
+
+/* 이미지 업로드 영역 */
+.image-upload-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  border: 2px dashed var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: var(--space-8);
+  background-color: var(--bg-secondary);
+  text-align: center;
+  transition: all var(--transition-base);
+}
+
+.image-upload-area:hover {
+  border-color: var(--primary-300);
+  background-color: var(--bg-tertiary);
+}
+
+.hidden-file-input {
+  display: none;
+}
+
+/* 이미지 미리보기 */
+.image-preview-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.image-preview-item {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.image-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.image-preview-close {
+  position: absolute;
+  top: var(--space-1);
+  right: var(--space-1);
+  background-color: rgba(0, 0, 0, 0.6);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  font-size: var(--text-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 
 /* 버튼 컨테이너 개선 */
 .jd-form-actions {
@@ -154,14 +289,13 @@
   opacity: 0.9;
 }
 
-/* 버튼 아이콘 */
+/* 버튼 아이콘 및 스피너 */
 .button-icon {
   font-size: var(--text-xl);
   display: flex;
   align-items: center;
 }
 
-/* 로딩 상태 */
 .analyze-button:disabled {
   cursor: not-allowed;
   opacity: 0.8;
@@ -169,6 +303,8 @@
 
 .analyze-button:disabled .spinner {
   margin-right: var(--space-2);
+  border-color: #fff;
+  border-right-color: transparent;
 }
 
 /* 분석 결과 개선 */
@@ -177,6 +313,7 @@
   flex-direction: column;
   gap: var(--space-6);
   margin-bottom: var(--space-6);
+  animation: slideInUp 0.4s ease-out;
 }
 
 .analysis-section {
@@ -342,15 +479,9 @@
   outline-offset: 2px;
 }
 
-.jd-textarea:focus {
-  outline: none;
-}
+/* .jd-textarea:focus는 이미 위에서 정의됨 */
 
 /* 애니메이션 효과 */
-.analysis-result {
-  animation: slideInUp 0.4s ease-out;
-}
-
 @keyframes slideInUp {
   from {
     opacity: 0;
@@ -360,13 +491,4 @@
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-/* 데이터 보존 알림 */
-.auto-save-status {
-  padding: var(--space-1) var(--space-2);
-  background-color: var(--success-50);
-  border: 1px solid var(--success-200);
-  border-radius: var(--radius-sm);
-  font-size: var(--text-xs);
 }
