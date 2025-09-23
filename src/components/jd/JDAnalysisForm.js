@@ -1,488 +1,294 @@
-// src/components/jd/JDAnalysisForm.js (개선된 버전)
-import React, { useState, useEffect, useRef } from 'react'
-import { useAuth } from '../../hooks/useAuth'
-import { jdAPI } from '../../services/api'
-import { analyzeJD, analyzeImageJD, analyzeURLJD } from '../../services/ai'
-import ErrorMessage from '../common/ErrorMessage'
-import './JDAnalysisForm.css'
+import React, { useState, useEffect, useRef } from 'react';
+import { analyzeJD, analyzeURLJD, analyzeImageJD } from '../../services/ai';
+import { supabase } from '../../services/supabase'; // <-- 이 경로가 수정되었습니다.
+import './JDAnalysisForm.css';
 
-const JDAnalysisForm = ({ onAnalysisComplete, existingJDs, onSelectJD }) => {
-  const [inputMode, setInputMode] = useState('text') // 'text', 'image', 'url'
-  const [jdText, setJdText] = useState('')
-  const [jdUrl, setJdUrl] = useState('')
-  const [selectedFiles, setSelectedFiles] = useState([])
-  const [isAnalyzing, setIsAnalyzing] = useState(false)
-  const [error, setError] = useState('')
-  const [analysisResult, setAnalysisResult] = useState(null)
-  const [autoSaveStatus, setAutoSaveStatus] = useState('')
-  const { user } = useAuth()
-  const autoSaveTimeoutRef = useRef(null)
-  const fileInputRef = useRef(null)
+const JDAnalysisForm = () => {
+  const [inputMode, setInputMode] = useState('text');
+  const [inputValue, setInputValue] = useState('');
+  const [urlValue, setUrlValue] = useState('');
+  const [images, setImages] = useState([]);
+  const [analysisResult, setAnalysisResult] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [wordCount, setWordCount] = useState(0);
+  const [autoSaveStatus, setAutoSaveStatus] = useState('');
 
-  // 로컬 스토리지 키
-  const LOCAL_STORAGE_KEY_TEXT = `jd_draft_text_${user?.id}`
-  const LOCAL_STORAGE_KEY_URL = `jd_draft_url_${user?.id}`
+  const fileInputRef = useRef(null);
 
-  // 컴포넌트 마운트 시 저장된 초안 불러오기
+  // 자동 저장 로직
   useEffect(() => {
-    if (user) {
-      const savedTextDraft = localStorage.getItem(LOCAL_STORAGE_KEY_TEXT)
-      const savedUrlDraft = localStorage.getItem(LOCAL_STORAGE_KEY_URL)
-
-      if (savedTextDraft) {
-        setJdText(savedTextDraft)
-        setInputMode('text')
-        setAutoSaveStatus('저장된 텍스트 초안을 불러왔습니다')
-      } else if (savedUrlDraft) {
-        setJdUrl(savedUrlDraft)
-        setInputMode('url')
-        setAutoSaveStatus('저장된 URL 초안을 불러왔습니다')
-      }
-      setTimeout(() => setAutoSaveStatus(''), 3000)
+    const savedText = localStorage.getItem('jdAnalysisText');
+    if (savedText) {
+      setInputValue(savedText);
+      setWordCount(savedText.split(/\s+/).filter(Boolean).length);
     }
-  }, [user, LOCAL_STORAGE_KEY_TEXT, LOCAL_STORAGE_KEY_URL])
+  }, []);
 
-  // 자동 저장 기능
   useEffect(() => {
-    if (user) {
-      if (autoSaveTimeoutRef.current) {
-        clearTimeout(autoSaveTimeoutRef.current)
+    const handler = setTimeout(() => {
+      if (inputValue) {
+        localStorage.setItem('jdAnalysisText', inputValue);
+        setAutoSaveStatus('자동 저장 완료');
+      } else {
+        localStorage.removeItem('jdAnalysisText');
+        setAutoSaveStatus('');
       }
+    }, 1000);
 
-      const saveDraft = () => {
-        if (inputMode === 'text' && jdText.trim()) {
-          localStorage.setItem(LOCAL_STORAGE_KEY_TEXT, jdText)
-          localStorage.removeItem(LOCAL_STORAGE_KEY_URL)
-          setAutoSaveStatus('자동 저장됨')
-        } else if (inputMode === 'url' && jdUrl.trim()) {
-          localStorage.setItem(LOCAL_STORAGE_KEY_URL, jdUrl)
-          localStorage.removeItem(LOCAL_STORAGE_KEY_TEXT)
-          setAutoSaveStatus('자동 저장됨')
-        } else {
-          localStorage.removeItem(LOCAL_STORAGE_KEY_TEXT)
-          localStorage.removeItem(LOCAL_STORAGE_KEY_URL)
-        }
-        setTimeout(() => setAutoSaveStatus(''), 2000)
-      }
+    return () => clearTimeout(handler);
+  }, [inputValue]);
 
-      // 2초 후 자동 저장
-      if ((inputMode === 'text' && jdText.trim()) || (inputMode === 'url' && jdUrl.trim())) {
-        autoSaveTimeoutRef.current = setTimeout(saveDraft, 2000)
-      }
-    }
-
-    return () => {
-      if (autoSaveTimeoutRef.current) {
-        clearTimeout(autoSaveTimeoutRef.current)
-      }
-    }
-  }, [jdText, jdUrl, inputMode, user, LOCAL_STORAGE_KEY_TEXT, LOCAL_STORAGE_KEY_URL])
-
-  // 페이지를 떠날 때 확인 (입력 중인 내용이 있을 때)
-  useEffect(() => {
-    const handleBeforeUnload = (e) => {
-      const hasContent = (inputMode === 'text' && jdText.trim()) || (inputMode === 'url' && jdUrl.trim()) || selectedFiles.length > 0;
-      if (hasContent && !analysisResult) {
-        e.preventDefault();
-        e.returnValue = '입력 중인 내용이 있습니다. 정말 페이지를 떠나시겠습니까?';
-      }
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [inputMode, jdText, jdUrl, selectedFiles, analysisResult]);
-
-  const handleAnalyze = async () => {
-    if ((inputMode === 'text' && !jdText.trim()) || (inputMode === 'url' && !jdUrl.trim()) || (inputMode === 'image' && selectedFiles.length === 0)) {
-      return;
-    }
-
-    setIsAnalyzing(true);
-    setError('');
-    
-    let analysis;
-    let originalText = '';
-    let title = '분석된 채용공고';
-
-    try {
-      if (inputMode === 'text') {
-        analysis = await analyzeJD(jdText);
-        originalText = jdText;
-      } else if (inputMode === 'url') {
-        const result = await analyzeURLJD(jdUrl);
-        analysis = result.analysis;
-        originalText = result.extractedText;
-        title = jdUrl;
-      } else if (inputMode === 'image') {
-        const base64Images = await Promise.all(selectedFiles.map(file => {
-          return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result.split(',')[1]);
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
-          });
-        }));
-        const result = await analyzeImageJD(base64Images);
-        analysis = result.analysis;
-        originalText = result.extractedText;
-        title = `이미지 분석 (${selectedFiles.length}장)`;
-      }
-
-      // DB에 저장
-      const { data, error } = await jdAPI.create({
-        user_id: user.id,
-        title: analysis.summary?.slice(0, 50) || title,
-        original_text: originalText,
-        extracted_keywords: analysis.keywords || [],
-        summary: analysis.summary || ''
-      });
-
-      if (error) throw error;
-
-      const newJD = { ...data[0], analysis };
-      setAnalysisResult(newJD);
-      onAnalysisComplete(newJD);
-      
-      // 분석 완료 후 초안 삭제
-      localStorage.removeItem(LOCAL_STORAGE_KEY_TEXT);
-      localStorage.removeItem(LOCAL_STORAGE_KEY_URL);
-      setAutoSaveStatus('');
-      
-    } catch (error) {
-      setError('분석 중 오류가 발생했습니다: ' + error.message);
-    } finally {
-      setIsAnalyzing(false);
-    }
-  };
-
-  const handleTextChange = (e) => {
-    setJdText(e.target.value);
-    setError('');
+  // 입력 핸들러
+  const handleInputChange = (e) => {
+    const text = e.target.value;
+    setInputValue(text);
+    setWordCount(text.split(/\s+/).filter(Boolean).length);
+    setAutoSaveStatus('...자동 저장 중');
   };
 
   const handleUrlChange = (e) => {
-    setJdUrl(e.target.value);
-    setError('');
+    setUrlValue(e.target.value);
   };
 
-  const handleFileChange = (e) => {
-    setSelectedFiles(Array.from(e.target.files));
-    setError('');
+  // 이미지 업로드 핸들러
+  const handleImageUpload = (e) => {
+    const files = Array.from(e.target.files);
+    setImages(prevImages => [...prevImages, ...files]);
   };
 
-  const handleClear = () => {
-    if (window.confirm('작성 중인 내용을 모두 삭제하시겠습니까?')) {
-      setJdText('');
-      setJdUrl('');
-      setSelectedFiles([]);
-      localStorage.removeItem(LOCAL_STORAGE_KEY_TEXT);
-      localStorage.removeItem(LOCAL_STORAGE_KEY_URL);
-      setAutoSaveStatus('초안이 삭제되었습니다');
-      setTimeout(() => setAutoSaveStatus(''), 2000);
+  const handleDragOver = (e) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/'));
+    setImages(prevImages => [...prevImages, ...files]);
+  };
+
+  const handleImageRemove = (index) => {
+    setImages(prevImages => prevImages.filter((_, i) => i !== index));
+  };
+
+  const handleModeChange = (mode) => {
+    setInputMode(mode);
+    setAnalysisResult(null); // 모드 변경 시 결과 초기화
+  };
+
+  // 분석 실행 함수
+  const handleAnalysis = async () => {
+    setAnalysisResult(null);
+    setIsLoading(true);
+    setIsAnalyzing(true);
+
+    try {
+      let result;
+      switch (inputMode) {
+        case 'text':
+          result = await analyzeJD(inputValue);
+          break;
+        case 'url':
+          result = await analyzeURLJD(urlValue);
+          break;
+        case 'image':
+          result = await analyzeImageJD(images);
+          break;
+        default:
+          throw new Error('Invalid input mode');
+      }
+
+      setAnalysisResult(result);
+    } catch (error) {
+      console.error('Analysis failed:', error);
+      setAnalysisResult({ error: '분석 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' });
+    } finally {
+      setIsLoading(false);
+      setIsAnalyzing(false);
     }
   };
-
-  const clearSelectedFile = (index) => {
-    setSelectedFiles(files => files.filter((_, i) => i !== index));
-  };
-  
-  const isInputEmpty = () => {
-    if (inputMode === 'text') return !jdText.trim();
-    if (inputMode === 'url') return !jdUrl.trim();
-    if (inputMode === 'image') return selectedFiles.length === 0;
-    return true;
-  };
-
-  const wordCount = jdText.length;
 
   return (
     <div className="jd-analysis-section">
       <div className="card">
         <div className="card-header">
-          <h3 className="card-title">📄 채용공고 분석</h3>
+          <h2 className="card-title">JD (Job Description) 분석</h2>
           <p className="card-subtitle">
-            채용공고를 붙여넣거나, 이미지 또는 URL을 통해 AI 분석을 시작해 보세요.
+            텍스트, URL, 또는 이미지 파일로 채용 공고를 분석하여 핵심 키워드, 자격 요건, 우대 사항을 추출합니다.
           </p>
         </div>
+
+        {/* 입력 모드 탭 */}
+        <div className="input-mode-tabs">
+          <button
+            className={`tab-btn ${inputMode === 'text' ? 'active' : ''}`}
+            onClick={() => handleModeChange('text')}
+          >
+            텍스트 입력
+          </button>
+          <button
+            className={`tab-btn ${inputMode === 'url' ? 'active' : ''}`}
+            onClick={() => handleModeChange('url')}
+          >
+            URL 분석
+          </button>
+          <button
+            className={`tab-btn ${inputMode === 'image' ? 'active' : ''}`}
+            onClick={() => handleModeChange('image')}
+          >
+            이미지 분석
+          </button>
+        </div>
+
+        {/* 입력 필드 (조건부 렌더링) */}
         <div className="card-body">
-          <div className="input-mode-tabs">
-            <button
-              className={`tab-btn ${inputMode === 'text' ? 'active' : ''}`}
-              onClick={() => setInputMode('text')}
-            >
-              텍스트 입력
-            </button>
-            <button
-              className={`tab-btn ${inputMode === 'image' ? 'active' : ''}`}
-              onClick={() => { setInputMode('image'); setSelectedFiles([]); }}
-            >
-              이미지 분석
-            </button>
-            <button
-              className={`tab-btn ${inputMode === 'url' ? 'active' : ''}`}
-              onClick={() => { setInputMode('url'); setJdUrl(''); }}
-            >
-              URL 분석
-            </button>
-          </div>
-          
-          {/* 텍스트 입력 모드 */}
           {inputMode === 'text' && (
-            <div className="form-group">
+            <>
               <div className="textarea-header">
-                <label htmlFor="jd-text" className="form-label">
-                  채용공고 내용
-                </label>
+                <span className="text-sm font-semibold">채용 공고</span>
                 <div className="textarea-info">
-                  <span className="word-count">
-                    {wordCount}자
-                  </span>
-                  {autoSaveStatus && (
-                    <span className="auto-save-status">
-                      💾 {autoSaveStatus}
-                    </span>
-                  )}
+                  <span className="word-count">{wordCount} 단어</span>
+                  <span className="auto-save-status">{autoSaveStatus}</span>
                 </div>
               </div>
               <textarea
-                id="jd-text"
-                value={jdText}
-                onChange={handleTextChange}
-                placeholder="채용공고를 붙여넣어 주세요..."
-                className="form-textarea jd-textarea"
-                rows="12"
+                className="jd-textarea"
+                placeholder="채용 공고 내용을 여기에 붙여넣으세요."
+                value={inputValue}
+                onChange={handleInputChange}
                 disabled={isAnalyzing}
               />
-              {jdText.trim() && (
-                <div className="textarea-actions">
-                  <button
-                    type="button"
-                    onClick={handleClear}
-                    className="btn btn-ghost btn-sm"
-                    disabled={isAnalyzing}
-                  >
-                    🗑️ 내용 지우기
-                  </button>
-                </div>
-              )}
-            </div>
+            </>
           )}
 
-          {/* URL 입력 모드 */}
           {inputMode === 'url' && (
-            <div className="form-group">
-              <label htmlFor="jd-url" className="form-label">
-                채용공고 URL
-              </label>
+            <>
+              <div className="mb-4">
+                <span className="text-sm font-semibold">채용 공고 URL</span>
+              </div>
               <input
-                id="jd-url"
                 type="url"
-                value={jdUrl}
-                onChange={handleUrlChange}
-                placeholder="예: https://www.jobkorea.co.kr/Recruit/JobDetail/..."
                 className="form-input"
+                placeholder="https://www.example.com/job-post"
+                value={urlValue}
+                onChange={handleUrlChange}
                 disabled={isAnalyzing}
               />
-              {jdUrl.trim() && (
-                <div className="textarea-actions">
-                  <button
-                    type="button"
-                    onClick={handleClear}
-                    className="btn btn-ghost btn-sm"
-                    disabled={isAnalyzing}
-                  >
-                    🗑️ 내용 지우기
-                  </button>
-                </div>
-              )}
-            </div>
+            </>
           )}
 
-          {/* 이미지 입력 모드 */}
           {inputMode === 'image' && (
-            <div className="form-group">
-              <label className="form-label">
-                채용공고 이미지
-              </label>
-              <div className="image-upload-area">
+            <>
+              <div
+                className="image-upload-area"
+                onDragOver={handleDragOver}
+                onDrop={handleDrop}
+                onClick={() => fileInputRef.current.click()}
+              >
                 <input
-                  ref={fileInputRef}
                   type="file"
+                  ref={fileInputRef}
+                  className="hidden-file-input"
                   multiple
                   accept="image/*"
-                  onChange={handleFileChange}
-                  className="hidden-file-input"
+                  onChange={handleImageUpload}
                   disabled={isAnalyzing}
                 />
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current.click()}
-                  className="btn btn-secondary btn-sm"
-                  disabled={isAnalyzing}
-                >
-                  📁 이미지 선택
-                </button>
-                {selectedFiles.length > 0 && (
-                  <p className="mt-2 text-sm text-gray-500">
-                    선택된 파일: {selectedFiles.length}개
-                    <button onClick={handleClear} className="ml-2 text-red-500 hover:text-red-700">
-                      (모두 지우기)
-                    </button>
-                  </p>
-                )}
+                <span className="text-gray-500">
+                  <span className="font-bold text-primary-500">클릭</span>하거나
+                  여기에 파일을 끌어다 놓으세요.
+                </span>
+                <span className="text-xs text-gray-400">JPG, PNG, GIF 등 이미지 파일</span>
+              </div>
+              {images.length > 0 && (
                 <div className="image-preview-list">
-                  {selectedFiles.map((file, index) => (
+                  {images.map((image, index) => (
                     <div key={index} className="image-preview-item">
-                      <img src={URL.createObjectURL(file)} alt="preview" className="image-preview" />
-                      <button onClick={() => clearSelectedFile(index)} className="image-preview-close">
+                      <img src={URL.createObjectURL(image)} alt={`preview-${index}`} className="image-preview" />
+                      <button className="image-preview-close" onClick={(e) => { e.stopPropagation(); handleImageRemove(index); }}>
                         &times;
                       </button>
                     </div>
                   ))}
                 </div>
-              </div>
-            </div>
+              )}
+            </>
           )}
 
-          {error && <ErrorMessage message={error} type="error" />}
-
+          {/* 분석 버튼 */}
           <div className="jd-form-actions">
             <button
-              onClick={handleAnalyze}
-              disabled={isInputEmpty() || isAnalyzing}
-              className={`btn btn-lg analyze-button ${isInputEmpty() ? 'btn-disabled' : 'btn-primary'}`}
+              className={`analyze-button ${isLoading ? 'btn-disabled' : 'btn-primary'}`}
+              onClick={handleAnalysis}
+              disabled={isLoading || (inputMode === 'text' && !inputValue) || (inputMode === 'url' && !urlValue) || (inputMode === 'image' && images.length === 0)}
             >
-              {isAnalyzing ? (
-                <>
-                  <span className="spinner spinner-sm"></span>
-                  AI 분석 중...
-                </>
-              ) : (
-                <div className="button-content">
-                  <div className="button-main">
-                    <span className="button-icon">🤖</span>
-                    AI 분석 시작
-                  </div>
-                  <div className="button-subtitle">
-                    {isInputEmpty() ? '(내용 입력/선택 시 활성화)' : '(분석 준비 완료)'}
-                  </div>
+              <div className="button-content">
+                <div className="button-main">
+                  {isLoading ? (
+                    <>
+                      <div className="spinner-border spinner-border-sm" role="status">
+                        <span className="sr-only"></span>
+                      </div>
+                      <span>분석 중...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>JD 분석 시작</span>
+                      <i className="fas fa-arrow-right button-icon"></i>
+                    </>
+                  )}
                 </div>
-              )}
+                {!isLoading && (
+                  <span className="button-subtitle">
+                    AI 기반 JD 분석을 통해 핵심 정보를 빠르게 파악하세요.
+                  </span>
+                )}
+              </div>
             </button>
           </div>
         </div>
       </div>
 
-      {/* 분석 결과 */}
+      {/* 분석 결과 (조건부 렌더링) */}
       {analysisResult && (
-        <div className="card mt-6">
-          <div className="card-header">
-            <h3 className="card-title">✅ 분석 결과</h3>
-          </div>
-          <div className="card-body">
-            <div className="analysis-result">
+        <div className="analysis-result">
+          {analysisResult.error ? (
+            <div className="analysis-section" style={{ color: 'red' }}>
+              <h3 className="analysis-subtitle">오류 발생</h3>
+              <p className="analysis-text">
+                {analysisResult.error}
+              </p>
+            </div>
+          ) : (
+            <>
               <div className="analysis-section">
-                <h4 className="analysis-subtitle">요약</h4>
-                <p className="analysis-text">{analysisResult.analysis.summary}</p>
-              </div>
-              
-              <div className="analysis-section">
-                <h4 className="analysis-subtitle">핵심 키워드</h4>
+                <h3 className="analysis-subtitle">핵심 키워드</h3>
                 <div className="badge-list">
-                  {analysisResult.analysis.keywords?.map((keyword, idx) => (
-                    <span key={idx} className="badge badge-primary">
+                  {analysisResult.keywords?.map((keyword, index) => (
+                    <span key={index} className="badge bg-primary-100 text-primary-600">
                       {keyword}
                     </span>
                   ))}
                 </div>
               </div>
-              
               <div className="analysis-section">
-                <h4 className="analysis-subtitle">필수 스킬</h4>
-                <div className="badge-list">
-                  {analysisResult.analysis.required_skills?.map((skill, idx) => (
-                    <span key={idx} className="badge badge-error">
-                      {skill}
-                    </span>
-                  ))}
-                </div>
+                <h3 className="analysis-subtitle">자격 요건</h3>
+                <p className="analysis-text">
+                  {analysisResult.requirements}
+                </p>
               </div>
-              
               <div className="analysis-section">
-                <h4 className="analysis-subtitle">우대 스킬</h4>
-                <div className="badge-list">
-                  {analysisResult.analysis.preferred_skills?.map((skill, idx) => (
-                    <span key={idx} className="badge badge-success">
-                      {skill}
-                    </span>
-                  ))}
-                </div>
+                <h3 className="analysis-subtitle">우대 사항</h3>
+                <p className="analysis-text">
+                  {analysisResult.preferences}
+                </p>
               </div>
-            </div>
-
-            <div className="analysis-actions">
-              <button
-                onClick={() => onSelectJD(analysisResult)}
-                className="btn btn-success btn-lg"
-              >
-                🚀 이 JD로 이력서 생성하기
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 기존 JD 목록 */}
-      {existingJDs && existingJDs.length > 0 && (
-        <div className="card mt-6">
-          <div className="card-header">
-            <h3 className="card-title">📋 분석된 JD 목록</h3>
-          </div>
-          <div className="card-body">
-            <div className="jd-list">
-              {existingJDs.map(jd => (
-                <div key={jd.id} className="jd-item">
-                  <div className="jd-item-content">
-                    <h4 className="jd-item-title">{jd.title}</h4>
-                    <p className="jd-item-summary">{jd.summary}</p>
-                    <div className="jd-item-keywords">
-                      {jd.extracted_keywords?.slice(0, 3).map((keyword, idx) => (
-                        <span key={idx} className="badge badge-gray">
-                          {keyword}
-                        </span>
-                      ))}
-                      {jd.extracted_keywords?.length > 3 && (
-                        <span className="badge badge-gray">
-                          +{jd.extracted_keywords.length - 3}개 더
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="jd-item-actions">
-                    <button
-                      onClick={() => onSelectJD({
-                        ...jd,
-                        analysis: {
-                          keywords: jd.extracted_keywords || [],
-                          summary: jd.summary || '',
-                          required_skills: [],
-                          preferred_skills: [],
-                          key_responsibilities: []
-                        }
-                      })}
-                      className="btn btn-primary btn-sm"
-                    >
-                      이력서 생성
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+            </>
+          )}
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
 export default JDAnalysisForm;
