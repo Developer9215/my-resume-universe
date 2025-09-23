@@ -1,0 +1,251 @@
+/* src/components/resume/ResumeGenerator.css */
+.resume-generator {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.jd-selection-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--space-4);
+}
+
+.jd-selection-card {
+  padding: var(--space-4);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  background-color: var(--bg-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.jd-selection-card:hover {
+  border-color: var(--primary-300);
+  background-color: var(--bg-primary);
+  box-shadow: var(--shadow-md);
+}
+
+.jd-selection-title {
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.jd-selection-summary {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  margin: 0 0 var(--space-3) 0;
+  line-height: 1.5;
+}
+
+.jd-selection-keywords {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.selected-jd-info {
+  margin-bottom: var(--space-6);
+}
+
+.selected-jd-summary {
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin: 0 0 var(--space-4) 0;
+}
+
+.selected-jd-keywords {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.selected-jd-keywords strong {
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+}
+
+.keyword-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.generation-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border-color);
+}
+
+.content-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: var(--space-6);
+  gap: var(--space-1);
+}
+
+.content-tab {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border: none;
+  background: none;
+  font-size: var(--text-base);
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all var(--transition-fast);
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+}
+
+.content-tab:hover {
+  color: var(--text-primary);
+  background-color: var(--bg-tertiary);
+}
+
+.content-tab.active {
+  color: var(--primary-600);
+  border-bottom-color: var(--primary-600);
+  background-color: var(--bg-primary);
+}
+
+.resume-content {
+  background-color: var(--bg-secondary);
+  padding: var(--space-6);
+  border-radius: var(--radius-lg);
+  line-height: 1.8;
+  font-family: 'Times New Roman', serif;
+}
+
+.resume-content h1 {
+  color: var(--primary-600);
+  border-bottom: 2px solid var(--primary-600);
+  padding-bottom: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.resume-content h2 {
+  color: var(--text-primary);
+  margin-top: var(--space-6);
+  margin-bottom: var(--space-3);
+}
+
+.resume-content h3 {
+  color: var(--text-primary);
+  margin-top: var(--space-4);
+  margin-bottom: var(--space-2);
+}
+
+.statement-content {
+  background-color: var(--primary-50);
+  padding: var(--space-6);
+  border-radius: var(--radius-lg);
+  border-left: 4px solid var(--primary-600);
+}
+
+.statement-content p {
+  font-size: var(--text-lg);
+  line-height: 1.8;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.questions-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.question-item {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background-color: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  border-left: 4px solid var(--warning-500);
+}
+
+.question-number {
+  font-weight: 600;
+  color: var(--warning-600);
+  flex-shrink: 0;
+  font-size: var(--text-base);
+}
+
+.question-text {
+  color: var(--text-primary);
+  line-height: 1.6;
+}
+
+.empty-state {
+  text-align: center;
+  padding: var(--space-16) var(--space-8);
+  background-color: var(--bg-primary);
+  border-radius: var(--radius-xl);
+  border: 2px dashed var(--border-color);
+}
+
+.empty-state .empty-icon {
+  font-size: 4rem;
+  margin-bottom: var(--space-4);
+}
+
+.empty-state .empty-title {
+  font-size: var(--text-xl);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.empty-state .empty-description {
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+  .jd-selection-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .content-tabs {
+    flex-direction: column;
+    border-bottom: none;
+    gap: 0;
+  }
+  
+  .content-tab {
+    border-bottom: 1px solid var(--border-color);
+    border-radius: 0;
+    justify-content: center;
+  }
+  
+  .content-tab.active {
+    border-bottom-color: var(--border-color);
+    background-color: var(--primary-50);
+  }
+  
+  .selected-jd-keywords {
+    align-items: flex-start;
+  }
+  
+  .keyword-list {
+    justify-content: flex-start;
+  }
+  
+  .question-item {
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+  
+  .resume-content {
+    padding: var(--space-4);
+    font-size: var(--text-sm);
+  }
+}
