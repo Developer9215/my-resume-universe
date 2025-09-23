@@ -1,171 +1,414 @@
-/* src/components/experiences/ExperienceForm.css (추가/수정된 스타일) */
+/* 현재 상태 배지 */
+.current-status-badge {
+  display: flex;
+  justify-content: center;
+  margin: 0.5rem 0;
+}
 
-/* 기존 스타일 유지하고 다음 스타일들 추가 */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.375rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
 
-/* 스킬 표시 영역 */
+.badge-primary {
+  background: var(--primary-100);
+  color: var(--primary-700);
+}
+
+/* 스킬 관련 스타일 */
 .skills-display {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-1);
-  padding: var(--space-2);
-  background-color: var(--bg-secondary);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-color);
-  min-height: 40px;
-  align-items: flex-start;
-  align-content: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
 }
 
-/* 개별 스킬 태그 */
 .skill-tag {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-1);
-  padding: var(--space-1) var(--space-2);
-  background-color: var(--primary-100);
+  gap: 0.25rem;
+  background: var(--primary-100);
   color: var(--primary-700);
-  border-radius: var(--radius-sm);
-  font-size: var(--text-sm);
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.8rem;
   font-weight: 500;
-  border: 1px solid var(--primary-200);
-  transition: all var(--transition-fast);
-  user-select: none;
 }
 
-.skill-tag:hover {
-  background-color: var(--primary-200);
-  transform: scale(1.02);
-}
-
-/* 스킬 제거 버튼 */
 .skill-remove-btn {
   background: none;
   border: none;
   color: var(--primary-600);
-  font-size: var(--text-lg);
-  font-weight: bold;
+  font-size: 1rem;
+  line-height: 1;
   cursor: pointer;
   padding: 0;
+  margin-left: 0.25rem;
+  border-radius: 50%;
   width: 16px;
   height: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
-  transition: all var(--transition-fast);
+  transition: all 0.2s ease;
 }
 
 .skill-remove-btn:hover {
-  background-color: var(--primary-600);
-  color: white;
-  transform: scale(1.1);
+  background: var(--primary-200);
+  color: var(--primary-800);
 }
 
-/* 스킬 제안 영역 */
+/* 스킬 추천 */
 .skill-suggestions {
-  margin-top: var(--space-1);
-  padding: var(--space-1);
-  background-color: var(--bg-tertiary);
-  border-radius: var(--radius-sm);
-  border-left: 3px solid var(--primary-400);
+  margin-top: 0.5rem;
 }
 
-/* 유틸리티 클래스 */
-.ml-1 {
-  margin-left: var(--space-1);
+.popular-skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin-top: 0.375rem;
+}
+
+.skill-suggestion-btn {
+  background: var(--gray-100);
+  border: 1px solid var(--gray-200);
+  color: var(--gray-600);
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.skill-suggestion-btn:hover {
+  background: var(--primary-100);
+  border-color: var(--primary-300);
+  color: var(--primary-700);
+}
+
+/* 폼 액션 버튼 */
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--gray-200);
+}
+
+.btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--primary-500);
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--primary-600);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background: var(--gray-100);
+  color: var(--gray-700);
+  border: 1px solid var(--gray-300);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--gray-200);
+}
+
+/* 스피너 */
+.spinner {
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.spinner-sm {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 텍스트 크기 */
+.text-xs {
+  font-size: 0.75rem;
+}
+
+.mb-1 {
+  margin-bottom: 0.25rem;
 }
 
 .mb-2 {
-  margin-bottom: var(--space-2);
+  margin-bottom: 0.5rem;
 }
 
-.text-xs {
-  font-size: var(--text-xs);
+/* 체크박스 선택 시 종료일 필드 시각적 변화 */
+.checkbox-input:checked ~ .form-group .form-input:disabled {
+  background: var(--gray-25);
+  border-color: var(--gray-150);
 }
 
-/* 폼 그룹 간격 조정 */
-.experience-form .form-group {
-  margin-bottom: var(--space-5);
-}
-
-/* 유형별 폼 헤더 스타일 강화 */
-.card-title {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  font-size: var(--text-xl);
-}
-
-/* 폼 라벨 개선 */
-.form-label {
-  display: flex;
-  align-items: baseline;
-  gap: var(--space-1);
-  margin-bottom: var(--space-2);
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-/* 도움말 텍스트 스타일 */
-.text-muted {
-  color: var(--text-muted);
-  font-weight: 400;
-  font-size: var(--text-sm);
-}
-
-/* 스킬 입력 필드 포커스 효과 */
-.form-input:focus + .skill-suggestions {
-  border-left-color: var(--primary-600);
-  background-color: var(--primary-50);
-}
-
-/* 반응형 개선 */
+/* 반응형 디자인 */
 @media (max-width: 768px) {
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .form-actions {
+    flex-direction: column-reverse;
+  }
+  
+  .btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
   .skills-display {
-    padding: var(--space-2);
-    min-height: 50px;
+    gap: 0.375rem;
   }
   
   .skill-tag {
-    font-size: var(--text-xs);
-    padding: 2px var(--space-1);
+    font-size: 0.75rem;
+    padding: 0.2rem 0.4rem;
   }
   
-  .skill-remove-btn {
-    width: 14px;
-    height: 14px;
-    font-size: var(--text-sm);
+  .checkbox-label {
+    padding: 0.5rem;
+    gap: 0.5rem;
   }
   
-  .skill-suggestions {
-    padding: var(--space-2);
+  .checkbox-input {
+    width: 1.125rem;
+    height: 1.125rem;
+  }
+  
+  .checkbox-text {
+    font-size: 0.9rem;
   }
 }
 
-/* 애니메이션 효과 */
-.skill-tag {
-  animation: skillFadeIn 0.2s ease-out;
+/* 포커스 상태 개선 */
+.form-input:focus-visible,
+.form-select:focus-visible,
+.form-textarea:focus-visible,
+.checkbox-input:focus-visible {
+  outline: 2px solid var(--primary-500);
+  outline-offset: 2px;
 }
 
-@keyframes skillFadeIn {
-  from {
-    opacity: 0;
-    transform: scale(0.8);
+/* 에러 상태 */
+.form-input.error,
+.form-select.error,
+.form-textarea.error {
+  border-color: var(--error-500);
+}
+
+.form-input.error:focus,
+.form-select.error:focus,
+.form-textarea.error:focus {
+  border-color: var(--error-500);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+/* 체크박스가 선택될 때 애니메이션 */
+.checkbox-input {
+  position: relative;
+  overflow: hidden;
+}
+
+.checkbox-input:checked {
+  animation: checkboxPulse 0.3s ease-in-out;
+}
+
+@keyframes checkboxPulse {
+  0% {
+    transform: scale(1);
   }
-  to {
-    opacity: 1;
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
     transform: scale(1);
   }
 }
 
-/* 빈 스킬 표시 영역 스타일 */
-.skills-display:empty::before {
-  content: "추가된 스킬이 없습니다";
-  color: var(--text-muted);
-  font-style: italic;
-  font-size: var(--text-sm);
+/* 체크박스 호버 효과 개선 */
+.checkbox-label:hover .checkbox-input {
+  border-color: var(--primary-400);
+}
+
+.checkbox-label:hover .checkbox-text {
+  color: var(--primary-700);
+} src/components/experiences/ExperienceForm.css */
+
+.experience-form-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.experience-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* 폼 그룹 스타일 */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.form-label {
+  font-weight: 600;
+  color: var(--gray-700);
+  font-size: 0.9rem;
+}
+
+.required {
+  color: var(--error-500);
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+  padding: 0.75rem;
+  border: 2px solid var(--gray-200);
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  background: white;
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: var(--primary-500);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-input:disabled {
+  background: var(--gray-50);
+  color: var(--gray-400);
+  cursor: not-allowed;
+  border-color: var(--gray-200);
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 120px;
+  line-height: 1.5;
+}
+
+.form-help {
+  font-size: 0.8rem;
+  color: var(--gray-500);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.text-muted {
+  color: var(--gray-500);
+}
+
+.ml-1 {
+  margin-left: 0.25rem;
+}
+
+/* 체크박스 스타일 */
+.checkbox-label {
   display: flex;
   align-items: center;
-  height: 100%;
-  min-height: 36px;
+  gap: 0.75rem;
+  cursor: pointer;
+  padding: 0.75rem;
+  border: 2px solid var(--gray-200);
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+  background: white;
+  margin: 0.5rem 0;
 }
+
+.checkbox-label:hover {
+  border-color: var(--primary-300);
+  background: var(--primary-25);
+}
+
+.checkbox-input {
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid var(--gray-300);
+  border-radius: 0.375rem;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  appearance: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.checkbox-input:checked {
+  background: var(--primary-500);
+  border-color: var(--primary-500);
+}
+
+.checkbox-input:checked::after {
+  content: '✓';
+  color: white;
+  font-size: 0.875rem;
+  font-weight: bold;
+}
+
+.checkbox-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.checkbox-text {
+  font-weight: 600;
+  color: var(--gray-700);
+  font-size: 1rem;
+  user-select: none;
+}
+
