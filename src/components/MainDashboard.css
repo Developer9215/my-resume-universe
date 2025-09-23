@@ -1,4 +1,218 @@
 /* src/components/MainDashboard.css */
+
+/* src/components/MainDashboard.css에 추가할 스타일 */
+
+/* 헤더 레이아웃 개선 */
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-4) 0;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.back-button {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+
+.back-button:hover {
+  background-color: var(--bg-tertiary);
+  border-color: var(--primary-300);
+  color: var(--primary-600);
+  transform: translateX(-2px);
+}
+
+.dashboard-title {
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  color: var(--primary-600);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.user-info {
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+
+/* 설정 탭의 특별한 스타일 */
+.settings-content {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.settings-tabs {
+  display: flex;
+  justify-content: center;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: var(--space-8);
+  gap: var(--space-2);
+}
+
+.settings-tab {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-6);
+  border: none;
+  background: none;
+  font-size: var(--text-base);
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+}
+
+.settings-tab:hover {
+  color: var(--text-primary);
+  background-color: var(--bg-tertiary);
+}
+
+.settings-tab.active {
+  color: var(--primary-600);
+  border-bottom-color: var(--primary-600);
+  background-color: var(--bg-primary);
+}
+
+/* 반응형 헤더 */
+@media (max-width: 768px) {
+  .header-content {
+    flex-direction: column;
+    gap: var(--space-3);
+    text-align: center;
+  }
+  
+  .header-left {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  
+  .back-button {
+    order: -1;
+    align-self: flex-start;
+  }
+  
+  .dashboard-title {
+    font-size: var(--text-xl);
+  }
+  
+  .header-actions {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  
+  .user-info {
+    text-align: center;
+    width: 100%;
+    margin-bottom: var(--space-2);
+  }
+  
+  .settings-tabs {
+    flex-direction: column;
+    gap: 0;
+    max-width: 400px;
+    margin: 0 auto var(--space-6);
+  }
+  
+  .settings-tab {
+    border-bottom: 1px solid var(--border-color);
+    border-radius: 0;
+    justify-content: center;
+  }
+  
+  .settings-tab.active {
+    border-bottom-color: var(--border-color);
+    background-color: var(--primary-50);
+  }
+}
+
+@media (max-width: 480px) {
+  .header-left {
+    gap: var(--space-2);
+  }
+  
+  .back-button {
+    padding: var(--space-1) var(--space-2);
+    font-size: var(--text-xs);
+  }
+  
+  .dashboard-title {
+    font-size: var(--text-lg);
+  }
+  
+  .header-actions {
+    gap: var(--space-2);
+  }
+  
+  .header-actions .btn {
+    padding: var(--space-1) var(--space-2);
+    font-size: var(--text-xs);
+  }
+}
+
+/* 설정 페이지 전용 애니메이션 */
+.settings-content {
+  animation: slideInFromRight 0.3s ease-out;
+}
+
+@keyframes slideInFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* 뒤로가기 버튼 애니메이션 */
+.back-button {
+  position: relative;
+  overflow: hidden;
+}
+
+.back-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s;
+}
+
+.back-button:hover::before {
+  left: 100%;
+}
+
 .dashboard {
   min-height: 100vh;
   background-color: var(--bg-secondary);
