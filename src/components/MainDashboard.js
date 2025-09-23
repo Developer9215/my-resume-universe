@@ -1,4 +1,4 @@
-// src/components/MainDashboard.js (수정된 버전)
+// src/components/MainDashboard.js (네비게이션 개선된 버전)
 import React, { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { experiencesAPI, jdAPI } from '../services/api'
@@ -6,6 +6,7 @@ import JDAnalysisForm from './jd/JDAnalysisForm'
 import ExperienceForm from './experiences/ExperienceForm'
 import ExperienceList from './experiences/ExperienceList'
 import ResumeGenerator from './resume/ResumeGenerator'
+import AccountSettings from './settings/AccountSettings'
 import Loading from './common/Loading'
 import './MainDashboard.css'
 
@@ -68,14 +69,25 @@ const MainDashboard = () => {
     }
   }
 
+  // 메인으로 돌아가기 함수
+  const handleBackToMain = () => {
+    setActiveTab('jd-analysis')
+  }
+
   const tabs = [
     { id: 'jd-analysis', name: 'JD 분석', icon: '📄' },
     { id: 'experiences', name: '경험 관리', icon: '💼' },
-    { id: 'resume-generator', name: '이력서 생성', icon: '🚀' }
+    { id: 'resume-generator', name: '이력서 생성', icon: '🚀' },
+    { id: 'settings', name: '설정', icon: '⚙️' }
   ]
 
   if (loading) {
     return <Loading message="대시보드를 불러오는 중..." />
+  }
+
+  // 설정 탭은 별도 컴포넌트로 처리 (헤더 포함)
+  if (activeTab === 'settings') {
+    return <AccountSettings onBackToMain={handleBackToMain} />
   }
 
   return (
@@ -87,6 +99,13 @@ const MainDashboard = () => {
             <h1 className="dashboard-title">My Resume Universe</h1>
             <div className="header-actions">
               <span className="user-info">안녕하세요, {user?.email}님!</span>
+              <button 
+                onClick={() => setActiveTab('settings')} 
+                className="btn btn-ghost btn-sm"
+                title="설정"
+              >
+                ⚙️ 설정
+              </button>
               <button onClick={signOut} className="btn btn-ghost btn-sm">
                 로그아웃
               </button>

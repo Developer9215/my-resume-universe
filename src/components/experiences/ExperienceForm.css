@@ -1,46 +1,171 @@
-/* src/components/experiences/ExperienceForm.css */
-.experience-form-container {
-  max-width: 800px;
-  margin: 0 auto;
-}
+/* src/components/experiences/ExperienceForm.css (추가/수정된 스타일) */
 
-.experience-form {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-}
+/* 기존 스타일 유지하고 다음 스타일들 추가 */
 
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-4);
-}
-
-.skills-preview {
+/* 스킬 표시 영역 */
+.skills-display {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-1);
-  margin-top: var(--space-2);
+  padding: var(--space-2);
+  background-color: var(--bg-secondary);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  min-height: 40px;
+  align-items: flex-start;
+  align-content: flex-start;
 }
 
-.form-actions {
+/* 개별 스킬 태그 */
+.skill-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  background-color: var(--primary-100);
+  color: var(--primary-700);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  border: 1px solid var(--primary-200);
+  transition: all var(--transition-fast);
+  user-select: none;
+}
+
+.skill-tag:hover {
+  background-color: var(--primary-200);
+  transform: scale(1.02);
+}
+
+/* 스킬 제거 버튼 */
+.skill-remove-btn {
+  background: none;
+  border: none;
+  color: var(--primary-600);
+  font-size: var(--text-lg);
+  font-weight: bold;
+  cursor: pointer;
+  padding: 0;
+  width: 16px;
+  height: 16px;
   display: flex;
-  gap: var(--space-3);
-  justify-content: flex-end;
-  padding-top: var(--space-4);
-  border-top: 1px solid var(--border-color);
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all var(--transition-fast);
 }
 
+.skill-remove-btn:hover {
+  background-color: var(--primary-600);
+  color: white;
+  transform: scale(1.1);
+}
+
+/* 스킬 제안 영역 */
+.skill-suggestions {
+  margin-top: var(--space-1);
+  padding: var(--space-1);
+  background-color: var(--bg-tertiary);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--primary-400);
+}
+
+/* 유틸리티 클래스 */
+.ml-1 {
+  margin-left: var(--space-1);
+}
+
+.mb-2 {
+  margin-bottom: var(--space-2);
+}
+
+.text-xs {
+  font-size: var(--text-xs);
+}
+
+/* 폼 그룹 간격 조정 */
+.experience-form .form-group {
+  margin-bottom: var(--space-5);
+}
+
+/* 유형별 폼 헤더 스타일 강화 */
+.card-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-xl);
+}
+
+/* 폼 라벨 개선 */
+.form-label {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-1);
+  margin-bottom: var(--space-2);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* 도움말 텍스트 스타일 */
+.text-muted {
+  color: var(--text-muted);
+  font-weight: 400;
+  font-size: var(--text-sm);
+}
+
+/* 스킬 입력 필드 포커스 효과 */
+.form-input:focus + .skill-suggestions {
+  border-left-color: var(--primary-600);
+  background-color: var(--primary-50);
+}
+
+/* 반응형 개선 */
 @media (max-width: 768px) {
-  .form-row {
-    grid-template-columns: 1fr;
+  .skills-display {
+    padding: var(--space-2);
+    min-height: 50px;
   }
   
-  .form-actions {
-    justify-content: stretch;
+  .skill-tag {
+    font-size: var(--text-xs);
+    padding: 2px var(--space-1);
   }
   
-  .form-actions .btn {
-    flex: 1;
+  .skill-remove-btn {
+    width: 14px;
+    height: 14px;
+    font-size: var(--text-sm);
   }
+  
+  .skill-suggestions {
+    padding: var(--space-2);
+  }
+}
+
+/* 애니메이션 효과 */
+.skill-tag {
+  animation: skillFadeIn 0.2s ease-out;
+}
+
+@keyframes skillFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* 빈 스킬 표시 영역 스타일 */
+.skills-display:empty::before {
+  content: "추가된 스킬이 없습니다";
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: var(--text-sm);
+  display: flex;
+  align-items: center;
+  height: 100%;
+  min-height: 36px;
 }
