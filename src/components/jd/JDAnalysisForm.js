@@ -4,6 +4,32 @@ import { preprocessImages, normalizeErrorMessage } from '../../services/ai';
 import { supabase } from '../../services/supabase';
 import './JDAnalysisForm.css';
 
+// 분석 결과의 응답 형식을 정규화하는 함수 추가
+// API에 따라 응답 구조가 다를 수 있으므로, 항상 동일한 객체를 반환하도록 처리합니다.
+const normalizeAnalysisResult = (result, mode) => {
+  // 실제 API 응답 구조에 맞춰 필요에 따라 수정하세요.
+  // 이 예제는 'result' 키 또는 'data' 키 아래에 분석 결과가 포함될 경우를 가정합니다.
+  if (!result) return { error: '분석 결과가 없습니다.' };
+
+  const analysisData = result.data || result.result || result;
+
+  if (analysisData && analysisData.error) {
+    return { error: analysisData.error };
+  }
+
+  // 각 분석 모드에 따라 다를 수 있는 필드명을 통일
+  const normalized = {
+    keywords: analysisData.keywords || [],
+    requirements: analysisData.requirements || '',
+    preferences: analysisData.preferences || '',
+    company_name: analysisData.company_name || null,
+    position: analysisData.position || null,
+    summary: analysisData.summary || null,
+  };
+
+  return normalized;
+};
+
 const JDAnalysisForm = () => {
   const [inputMode, setInputMode] = useState('text');
   const [inputValue, setInputValue] = useState('');
@@ -84,23 +110,26 @@ const JDAnalysisForm = () => {
     setIsAnalyzing(true);
 
     try {
-      let result;
+      let rawResult;
       switch (inputMode) {
         case 'text':
-          result = await jdAPI.analyze.text(inputValue);
+          rawResult = await jdAPI.analyze.text(inputValue);
           break;
         case 'url':
-          result = await jdAPI.analyze.url(urlValue);
+          rawResult = await jdAPI.analyze.url(urlValue);
           break;
         case 'image':
           const processedImages = await preprocessImages(images);
-          result = await jdAPI.analyze.image(processedImages);
+          rawResult = await jdAPI.analyze.image(processedImages);
+          console.log('이미지 분석 rawResult:', rawResult); // 디버그 로그 추가
           break;
         default:
           throw new Error('Invalid input mode');
       }
 
-      setAnalysisResult(result);
+      // API 응답을 일관된 형식으로 정규화
+      const normalizedResult = normalizeAnalysisResult(rawResult, inputMode);
+      setAnalysisResult(normalizedResult);
     } catch (error) {
       console.error('Analysis failed:', error);
       const errorMessage = normalizeErrorMessage(error);
@@ -307,6 +336,14 @@ const JDAnalysisForm = () => {
               )}
             </>
           )}
+
+          {/* 디버깅용: 전체 API 응답 구조 확인 */}
+          <div className="analysis-section">
+            <h3 className="analysis-subtitle">디버그: 정규화된 최종 결과</h3>
+            <pre style={{ fontSize: '12px', background: '#f5f5f5', padding: '10px', whiteSpace: 'pre-wrap' }}>
+              {JSON.stringify(analysisResult, null, 2)}
+            </pre>
+          </div>
         </div>
       )}
     </div>

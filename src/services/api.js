@@ -1,4 +1,4 @@
-// src/services/api.js - 완전 수정 버전
+// src/services/api.js - 완전 리팩토링 버전
 import { supabase } from './supabase'
 import axios from 'axios'
 
@@ -196,16 +196,57 @@ export const jdAPI = {
     }
   },
 
-  // 기존 JD 관리 (Supabase 직접 - 호환성 유지)
+  // JD 목록 조회 - jds 테이블에서 가져오기 (올바른 테이블)
   legacy: {
     getAll: async (userId) => {
-      const { data, error } = await supabase
-        .from('jds')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
-      
-      return { data, error }
+      try {
+        console.log('JD 목록 조회 시작, userId:', userId);
+        
+        // jds 테이블에서 JD 정보 가져오기
+        const { data, error } = await supabase
+          .from('jds')
+          .select('id, created_at, title, summary, extracted_keywords, original_text, user_id')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error('JD 조회 오류:', error);
+          return { data: [], error };
+        }
+
+        console.log('조회된 JD 데이터:', data);
+
+        // 데이터 구조 매핑 (이미 올바른 형태)
+        const processedData = (data || []).map(item => {
+          console.log('처리 중인 JD:', item);
+          
+          const keywords = item.extracted_keywords || [];
+
+          return {
+            id: item.id,
+            title: item.title || '채용공고',
+            summary: item.summary || '요약 정보가 없습니다.',
+            extracted_keywords: Array.isArray(keywords) ? keywords : [],
+            original_text: item.original_text || '',
+            created_at: item.created_at,
+            // 분석 데이터 구조 생성
+            analysis: {
+              keywords: Array.isArray(keywords) ? keywords : [],
+              summary: item.summary || '',
+              requirements: '',
+              preferences: ''
+            }
+          };
+        });
+
+        console.log('처리된 JD 데이터:', processedData);
+        
+        return { data: processedData, error: null };
+
+      } catch (error) {
+        console.error('JD 목록 조회 중 예외 발생:', error);
+        return { data: [], error: { message: error.message } };
+      }
     },
 
     create: async (jd) => {
@@ -269,7 +310,7 @@ export const experiencesAPI = {
   }
 }
 
-// 이력서 관련 API (백엔드로 통합)
+// 이력서 관련 API
 export const resumeAPI = {
   // 이력서 생성 (백엔드 서버)
   generate: async (jdAnalysis, userExperiences) => {
@@ -277,16 +318,16 @@ export const resumeAPI = {
       const response = await makeAuthenticatedRequest(`${API_BASE_URL}/generate-resume`, {
         jdAnalysis,
         userExperiences
-      })
+      });
       
       if (!response.success) {
-        throw new Error(response.error || '이력서 생성 실패')
+        throw new Error(response.error || '이력서 생성 실패');
       }
       
-      return response.data.resume
+      return response.data.resume;
     } catch (error) {
-      console.error('이력서 생성 API 오류:', error)
-      throw error
+      console.error('이력서 생성 API 오류:', error);
+      throw error;
     }
   },
 
@@ -296,16 +337,16 @@ export const resumeAPI = {
       const response = await makeAuthenticatedRequest(`${API_BASE_URL}/generate-questions`, {
         jdAnalysis,
         resumeContent
-      })
+      });
       
       if (!response.success) {
-        throw new Error(response.error || '면접 질문 생성 실패')
+        throw new Error(response.error || '면접 질문 생성 실패');
       }
       
-      return response.data.questions
+      return response.data.questions;
     } catch (error) {
-      console.error('면접 질문 생성 API 오류:', error)
-      throw error
+      console.error('면접 질문 생성 API 오류:', error);
+      throw error;
     }
   },
 
@@ -315,50 +356,68 @@ export const resumeAPI = {
       const response = await makeAuthenticatedRequest(`${API_BASE_URL}/generate-statement`, {
         jdAnalysis,
         userExperiences
-      })
+      });
       
       if (!response.success) {
-        throw new Error(response.error || '자기소개 문구 생성 실패')
+        throw new Error(response.error || '자기소개 문구 생성 실패');
       }
       
-      return response.data.statement
+      return response.data.statement;
     } catch (error) {
-      console.error('자기소개 문구 생성 API 오류:', error)
-      throw error
+      console.error('자기소개 문구 생성 API 오류:', error);
+      throw error;
     }
   },
 
-  // 기존 저장된 이력서 관리 (Supabase 직접)
+  // 저장된 이력서 관리
   legacy: {
     getAll: async (userId) => {
-      const { data, error } = await supabase
-        .from('generated_resumes')
-        .select(`
-          *,
-          jds (title)
-        `)
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
-      
-      return { data, error }
+      try {
+        const { data, error } = await supabase
+          .from('generated_resumes')
+          .select('*')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error('이력서 조회 오류:', error);
+          return { data: [], error };
+        }
+
+        return { data: data || [], error: null };
+
+      } catch (error) {
+        console.error('이력서 조회 중 예외 발생:', error);
+        return { data: [], error: { message: error.message } };
+      }
     },
 
     create: async (resume) => {
-      const { data, error } = await supabase
-        .from('generated_resumes')
-        .insert([resume])
-        .select()
-      
-      return { data, error }
+      try {
+        const { data, error } = await supabase
+          .from('generated_resumes')
+          .insert([resume])
+          .select();
+
+        return { data, error };
+      } catch (error) {
+        console.error('이력서 생성 중 예외 발생:', error);
+        return { data: null, error: { message: error.message } };
+      }
     },
 
     delete: async (id) => {
-      const { data, error } = await supabase
-        .from('generated_resumes')
-        .delete()
-        .eq('id', id)
-      
-      return { data, error }
+      try {
+        const { data, error } = await supabase
+          .from('generated_resumes')
+          .delete()
+          .eq('id', id);
+
+        return { data, error };
+      } catch (error) {
+        console.error('이력서 삭제 중 예외 발생:', error);
+        return { data: null, error: { message: error.message } };
+      }
     }
   }
 }
