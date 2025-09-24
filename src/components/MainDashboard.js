@@ -1,4 +1,4 @@
-// src/components/MainDashboard.js (네비게이션 개선된 버전)
+// src/components/MainDashboard.js (이력서 보관함 탭 추가)
 import React, { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { experiencesAPI, jdAPI } from '../services/api'
@@ -6,6 +6,7 @@ import JDAnalysisForm from './jd/JDAnalysisForm'
 import ExperienceForm from './experiences/ExperienceForm'
 import ExperienceList from './experiences/ExperienceList'
 import ResumeGenerator from './resume/ResumeGenerator'
+import ResumeLibrary from './resume/ResumeLibrary'
 import AccountSettings from './settings/AccountSettings'
 import Loading from './common/Loading'
 import './MainDashboard.css'
@@ -18,24 +19,25 @@ const MainDashboard = () => {
   const [editingExperience, setEditingExperience] = useState(null)
   const [showExperienceForm, setShowExperienceForm] = useState(false)
   const [loading, setLoading] = useState(true)
-  
+
   const { user, signOut } = useAuth()
 
   // useCallback으로 loadData 함수 최적화
   const loadData = useCallback(async () => {
     if (!user) return
-    
+
     setLoading(true)
     try {
       const [experiencesResult, jdsResult] = await Promise.all([
         experiencesAPI.getAll(user.id),
-        jdAPI.legacy.getAll(user.id)  // 기존 호환성 방식 사용
+        jdAPI.legacy.getAll(user.id)  // 원래대로 되돌림
       ])
-      
+
       setExperiences(experiencesResult.data || [])
-      setJDs(jdsResult.data || [])
+      setJDs(jdsResult.data || [])  // 원래대로 되돌림
     } catch (error) {
       console.error('데이터 로드 실패:', error)
+      setJDs([])
     } finally {
       setLoading(false)
     }
@@ -74,10 +76,16 @@ const MainDashboard = () => {
     setActiveTab('jd-analysis')
   }
 
+  // 이력서 저장 성공 시 보관함 탭으로 이동
+  const handleResumeSaved = () => {
+    setActiveTab('resume-library')
+  }
+
   const tabs = [
     { id: 'jd-analysis', name: 'JD 분석', icon: '📄' },
     { id: 'experiences', name: '경험 관리', icon: '💼' },
     { id: 'resume-generator', name: '이력서 생성', icon: '🚀' },
+    { id: 'resume-library', name: '이력서 보관함', icon: '📋' },
     { id: 'settings', name: '설정', icon: '⚙️' }
   ]
 
@@ -99,8 +107,8 @@ const MainDashboard = () => {
             <h1 className="dashboard-title">My Resume Universe</h1>
             <div className="header-actions">
               <span className="user-info">안녕하세요, {user?.email}님!</span>
-              <button 
-                onClick={() => setActiveTab('settings')} 
+              <button
+                onClick={() => setActiveTab('settings')}
                 className="btn btn-ghost btn-sm"
                 title="설정"
               >
@@ -135,7 +143,7 @@ const MainDashboard = () => {
           <div className="tab-content">
             {activeTab === 'jd-analysis' && (
               <div className="tab-panel">
-                <JDAnalysisForm 
+                <JDAnalysisForm
                   onAnalysisComplete={handleJDAnalysisComplete}
                   existingJDs={jds}
                   onSelectJD={setSelectedJD}
@@ -183,7 +191,14 @@ const MainDashboard = () => {
                   experiences={experiences}
                   jds={jds}
                   onSelectJD={setSelectedJD}
+                  onResumeSaved={handleResumeSaved}
                 />
+              </div>
+            )}
+
+            {activeTab === 'resume-library' && (
+              <div className="tab-panel">
+                <ResumeLibrary />
               </div>
             )}
           </div>
